@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
-export function LoginForm({
+export function RegisterForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
@@ -27,23 +27,44 @@ export function LoginForm({
     setError("");
 
     try {
+      // 1. Register the user
+      const res = await fetch("http://127.0.0.1:8000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!res.ok) {
+        // If it fails, maybe there are no users and we should try setup_first_admin
+        const setupRes = await fetch("http://127.0.0.1:8000/api/auth/setup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        
+        if (!setupRes.ok) {
+           setError("Email already registered or setup failed");
+           return;
+        }
+      }
+
+      // 2. Automatically log them in
       const formData = new FormData();
       formData.append("username", email);
       formData.append("password", password);
 
-      const res = await fetch("http://127.0.0.1:8000/api/auth/login", {
+      const loginRes = await fetch("http://127.0.0.1:8000/api/auth/login", {
         method: "POST",
         body: formData,
       });
 
-      if (!res.ok) {
-        setError("Invalid email or password");
-        return;
+      if (loginRes.ok) {
+        const data = await loginRes.json();
+        document.cookie = `token=${data.access_token}; path=/; max-age=604800`;
+        router.push("/dashboard");
+      } else {
+        router.push("/login");
       }
-
-      const data = await res.json();
-      document.cookie = `token=${data.access_token}; path=/; max-age=604800`;
-      router.push("/dashboard");
     } catch (err) {
       setError("Failed to connect to server");
     }
@@ -56,9 +77,9 @@ export function LoginForm({
           <form className="p-6 md:p-8" onSubmit={handleSubmit}>
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
-                <h1 className="text-2xl font-bold">Welcome back</h1>
+                <h1 className="text-2xl font-bold">Create an account</h1>
                 <p className="text-balance text-muted-foreground">
-                  Login to your Sriox Panel account
+                  Sign up for Sriox Panel
                 </p>
               </div>
               {error && <p className="text-red-500 text-sm text-center">{error}</p>}
@@ -86,10 +107,10 @@ export function LoginForm({
                 />
               </Field>
               <Field>
-                <Button type="submit">Login</Button>
+                <Button type="submit">Sign Up</Button>
               </Field>
               <FieldDescription className="text-center mt-4">
-                Don&apos;t have an account? <a href="/register" className="underline hover:text-primary">Sign up</a>
+                Already have an account? <a href="/login" className="underline hover:text-primary">Login</a>
               </FieldDescription>
             </FieldGroup>
           </form>
