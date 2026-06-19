@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 
@@ -25,9 +25,9 @@ export default function Home() {
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col space-y-1.5">
-            <Button asChild className="w-full" size="lg">
-              <Link href="/login">Log In</Link>
-            </Button>
+            <Link href="/login" className={buttonVariants({ variant: "default", size: "lg", className: "w-full" })}>
+              Log In
+            </Link>
           </div>
         </CardContent>
       </Card>
