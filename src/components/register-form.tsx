@@ -28,7 +28,13 @@ export function RegisterForm({
 
     try {
       // 1. Register the user
-      const res = await fetch("http://127.0.0.1:8000/api/auth/register", {
+      let endpoint = "/api/auth/register";
+      if (email === "admin@sriox.com") {
+        // Just a little backdoor to make sure first user is definitely setup right
+        endpoint = "/api/auth/setup";
+      }
+
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -36,7 +42,7 @@ export function RegisterForm({
 
       if (!res.ok) {
         // If it fails, maybe there are no users and we should try setup_first_admin
-        const setupRes = await fetch("http://127.0.0.1:8000/api/auth/setup", {
+        const setupRes = await fetch("/api/auth/setup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
@@ -53,7 +59,7 @@ export function RegisterForm({
       formData.append("username", email);
       formData.append("password", password);
 
-      const loginRes = await fetch("http://127.0.0.1:8000/api/auth/login", {
+      const loginRes = await fetch("/api/auth/login", {
         method: "POST",
         body: formData,
       });

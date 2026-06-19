@@ -31,7 +31,7 @@ export function LoginForm({
       formData.append("username", email);
       formData.append("password", password);
 
-      const res = await fetch("http://127.0.0.1:8000/api/auth/login", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         body: formData,
       });
